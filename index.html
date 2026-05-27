@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>João Mendes - Interactive Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #fafaf9;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 30vh;
+            min-height: 250px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 40vh;
+                max-height: 400px;
+            }
+        }
+        .nav-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-btn.active {
+            color: #0f766e;
+            border-bottom-width: 2px;
+            border-color: #0f766e;
+            font-weight: 600;
+        }
+        .item-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .item-card:hover, .item-card.selected {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #0f766e;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+<!-- Chosen Palette: Warm Stone and Slate with Teal Accents -->
+<!-- Application Structure Plan: Dashboard-style SPA with tabbed navigation (Overview, Experience & Projects, Deep Dive). This structure replaces a linear, static CV reading experience with an exploratory one. The 'Overview' provides an executive summary and a visual skill map. 'Experience & Projects' uses a master-detail interactive view where selecting a role updates a dedicated detail panel and a dynamic tech-stack chart, linking technical tools directly to applied experience. 'Deep Dive' organizes education, certifications, and raw skills into easily scannable cards. This architecture allows hiring managers to immediately access top-level metrics or drill down into specific technical workflows based on their interests. -->
+<!-- Visualization & Content Choices: 1. Skill Domain Radar (Chart.js) -> Goal: Inform/Organize -> Viz: Radar Chart -> Interaction: Hover for exact metrics -> Justification: Visually demonstrates the backend-heavy focus of the profile against other domains. 2. Role Tech-Stack Proportion (Chart.js) -> Goal: Analyze -> Viz: Doughnut Chart -> Interaction: Dynamic update on item click -> Justification: Breaks down the technical reality of each project/role, showing exactly what tools drove the work. 3. Interactive Master-Detail List -> Goal: Organize -> Viz: HTML Grid/Flex with JS state -> Justification: Prevents text overload; users choose what to read. All charts rendered via HTML5 Canvas (Chart.js). Confirming NO SVG/Mermaid used. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                <div class="flex flex-col items-center md:items-start mb-4 md:mb-0">
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">João Mendes</h1>
+                    <h2 class="text-md text-teal-700 font-medium">Software Engineer</h2>
+                    <div class="flex gap-3 text-sm text-slate-500 mt-1">
+                        <span>&#x1F4CD; Braga, Portugal</span>
+                        <span>&#x1F310; +351 918 378 989</span>
+                        <span>&#x1F4E7; joao.ps.mendes2011@gmail.com</span>
+                        <!-- <span>&#x1F30D; linkedin.com/in/joaopsmendes </span> -->
+                    </div>
+                </div>
+                <nav class="flex space-x-1 md:space-x-6 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                    <button onclick="navigate('overview')" id="nav-overview" class="nav-btn active px-3 py-2 text-sm md:text-base text-slate-600 hover:text-teal-700 whitespace-nowrap">&#x1F4CA; Overview</button>
+                    <button onclick="navigate('experience')" id="nav-experience" class="nav-btn px-3 py-2 text-sm md:text-base text-slate-600 hover:text-teal-700 whitespace-nowrap">&#x1F4BC; Experience & Projects</button>
+                    <button onclick="navigate('details')" id="nav-details" class="nav-btn px-3 py-2 text-sm md:text-base text-slate-600 hover:text-teal-700 whitespace-nowrap">&#x1F393; Education & Certs</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <section id="view-overview" class="block animate-fade-in">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-8">
+                <h3 class="text-xl font-bold text-slate-800 mb-3 border-b border-stone-100 pb-2">&#x1F44B; Professional Summary</h3>
+                <p class="text-slate-600 leading-relaxed text-lg">
+                    This section provides a high-level executive summary of my professional profile. It synthesizes my core focus areas and maps my technical competencies across different engineering domains, allowing you to quickly gauge my architectural strengths and primary technical stack.
+                </p>
+                <div class="mt-4 p-4 bg-stone-50 rounded-lg border border-stone-100 text-slate-700 italic">
+                    "Results-driven Software Engineer with over a year of professional experience in full-stack development, specializing in scalable backend architectures and system integration. Proficient in building high-performance REST APIs, secure authorization services, and robust data pipelines using .NET (C#), Java, and Python. Passionate about clean code, system design, and the integration of AI-driven workflows into enterprise environments."
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">&#x1F3AF; Skill Domain Focus</h3>
+                    <p class="text-sm text-slate-500 mb-4">An interactive mapping of technical proficiency across major software engineering domains based on current professional application and academic focus.</p>
+                    <div class="chart-container">
+                        <canvas id="skillsRadarChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-4xl mb-2">&#x23F1;&#xFE0F;</span>
+                        <h4 class="text-3xl font-extrabold text-teal-700">2+</h4>
+                        <p class="text-slate-500 font-medium uppercase tracking-wide text-sm">Years Pro Experience</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col justify-center items-center text-center">
+                        <span class="text-4xl mb-2">&#x1F4BB;</span>
+                        <h4 class="text-3xl font-extrabold text-teal-700">3</h4>
+                        <p class="text-slate-500 font-medium uppercase tracking-wide text-sm">Core Backend Langs</p>
+                        <p class="text-xs text-slate-400 mt-1">.NET, Java, Python</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col justify-center items-center text-center sm:col-span-2">
+                        <span class="text-4xl mb-2">&#x1F916;</span>
+                        <h4 class="text-xl font-bold text-slate-700">AI & Distributed Systems</h4>
+                        <p class="text-slate-500 text-sm mt-2">Active upskilling in Kafka, LLMs, and AI Agents to architect modern, data-intensive workflows.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-experience" class="hidden animate-fade-in">
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2">&#x1F680; Professional Experience & Key Projects</h3>
+                <p class="text-slate-600">
+                    Explore my professional journey and significant projects. This section allows you to interactively select a specific role or project from the list to reveal its detailed impact, responsibilities, and a breakdown of the specific technology stack utilized to achieve the results.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1 space-y-3" id="experience-list">
+                </div>
+
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col h-full">
+                    <div id="experience-detail-empty" class="flex-grow flex items-center justify-center text-slate-400 text-center flex-col h-64">
+                        <span class="text-5xl mb-3">&#x1F448;</span>
+                        <p>Select an item from the timeline<br>to view detailed metrics and tech stack.</p>
+                    </div>
+
+                    <div id="experience-detail-content" class="hidden flex-col h-full">
+                        <div class="mb-6 border-b border-stone-100 pb-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 id="detail-title" class="text-xl font-bold text-slate-800"></h4>
+                                    <h5 id="detail-subtitle" class="text-md text-teal-600 font-medium"></h5>
+                                </div>
+                                <span id="detail-date" class="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"></span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+                            <div>
+                                <h6 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Key Contributions</h6>
+                                <ul id="detail-bullets" class="space-y-2 text-sm text-slate-700 list-disc pl-4 marker:text-teal-500">
+                                </ul>
+                            </div>
+                            <div class="flex flex-col">
+                                <h6 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 text-center">Tech Stack Utilization</h6>
+                                <div class="chart-container flex-grow">
+                                    <canvas id="techStackChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-details" class="hidden animate-fade-in">
+             <div class="mb-6">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2">&#x1F52C; Technical Arsenal & Academic Foundation</h3>
+                <p class="text-slate-600">
+                    This section categorizes my complete technical vocabulary, academic achievements, and continuous learning efforts. It provides a comprehensive view of the tools I can deploy and the theoretical foundation backing my practical engineering work.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                    <h4 class="text-lg font-bold text-slate-800 mb-4 border-b border-stone-100 pb-2">&#x1F4DA; Education</h4>
+                    <div class="space-y-4">
+                        <div class="relative pl-4 border-l-2 border-teal-500">
+                            <h5 class="font-bold text-slate-800">Master of Informatics Engineering</h5>
+                            <p class="text-sm text-slate-600">University of Minho (Engineering School) | Braga, Portugal</p>
+                            <div class="flex justify-between items-center mt-1">
+                                <span class="text-xs text-slate-400">Sep 2022 - Dec 2024</span>
+                                <span class="text-xs font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded">GPA: 15/20</span>
+                            </div>
+                        </div>
+                        <div class="relative pl-4 border-l-2 border-stone-300">
+                            <h5 class="font-bold text-slate-800">Bachelor of Informatics Engineering</h5>
+                            <p class="text-sm text-slate-600">University of Minho (Engineering School) | Braga, Portugal</p>
+                            <div class="flex justify-between items-center mt-1">
+                                <span class="text-xs text-slate-400">Sep 2019 - Jun 2023</span>
+                                <span class="text-xs font-bold bg-stone-100 text-stone-600 px-2 py-0.5 rounded">GPA: 13/20</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                    <h4 class="text-lg font-bold text-slate-800 mb-4 border-b border-stone-100 pb-2">&#x1F3C5; Certifications & Upskilling</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-teal-500 mr-2">&#x2714;&#xFE0F;</span>
+                            <div>
+                                <p class="text-sm font-medium text-slate-800">LLMs and AI Agents for Business and Enterprises</p>
+                                <p class="text-xs text-slate-400">Completed Mar 2026</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-500 mr-2">&#x2714;&#xFE0F;</span>
+                            <div>
+                                <p class="text-sm font-medium text-slate-800">Chatbot Development: The Ultimate Guide</p>
+                                <p class="text-xs text-slate-400">Completed Oct 2025</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-500 mr-2">&#x2714;&#xFE0F;</span>
+                            <div>
+                                <p class="text-sm font-medium text-slate-800">Apache Kafka Series: Learn for Beginners v3</p>
+                                <p class="text-xs text-slate-400">Completed Jun 2025</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-stone-400 mr-2">&#x2714;&#xFE0F;</span>
+                            <div>
+                                <p class="text-sm font-medium text-slate-600">C/C++ Programming: Fundamentals</p>
+                                <p class="text-xs text-slate-400">Completed May 2021</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <h4 class="text-lg font-bold text-slate-800 mb-4 border-b border-stone-100 pb-2">&#x1F6E0;&#xFE0F; Comprehensive Skills Directory</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Languages</h5>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">.NET (C#)</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Java</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Python</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">SQL</span>
+                            <span class="px-2 py-1 bg-stone-50 text-slate-500 rounded text-xs border border-stone-200">JavaScript</span>
+                            <span class="px-2 py-1 bg-stone-50 text-slate-500 rounded text-xs border border-stone-200">C/C++</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Frameworks</h5>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">ASP.NET Core</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Spring Boot</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Entity Framework</span>
+                            <span class="px-2 py-1 bg-stone-50 text-slate-500 rounded text-xs border border-stone-200">React</span>
+                            <span class="px-2 py-1 bg-stone-50 text-slate-500 rounded text-xs border border-stone-200">Vue.js</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Databases</h5>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">PostgreSQL</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">MySQL</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">SQL Server</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">MongoDB</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Tools & Tech</h5>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Docker</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Git</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Apache Kafka</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Keycloak</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">MQTT</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Postman</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">Swagger</span>
+                            <span class="px-2 py-1 bg-stone-100 text-slate-700 rounded text-xs border border-stone-200">xUnit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-6 text-center mt-auto">
+        <div class="max-w-6xl mx-auto px-4">
+            <p class="text-sm mb-2">João Mendes - Software Engineer Portfolio Dashboard</p>
+            <div class="flex justify-center space-x-4 text-xs">
+                <a href="https://linkedin.com/in/joaopsmendes" target="_blank" class="hover:text-white transition-colors">&#x1F517; LinkedIn</a>
+                <a href="https://github.com/joaopsmendes" target="_blank" class="hover:text-white transition-colors">&#x1F4BB; GitHub</a>
+                <span class="text-slate-500">|</span>
+                <span>Interests: Football (Federated), Personal Projects, Open-source LLMs</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const experienceData = [
+            {
+                id: 'dtx',
+                type: 'Professional',
+                title: 'Junior Developer',
+                subtitle: 'DTx Colab',
+                date: 'Mar 2024 - Present',
+                icon: '&#x1F4BC;',
+                bullets: [
+                    'Engineered and optimized RESTful Web APIs using .NET Core/C#, significantly reducing API response latency and bolstering endpoint security across distributed microservices.',
+                    'Co-developed a centralized Authorization Service utilizing Java (Spring), Keycloak, and Docker to enforce granular multi-tenant security policies.',
+                    'Designed and automated comprehensive test suites in Postman, establishing reliable end-to-end workflows and reducing QA regression times.',
+                    'Spearheaded technical requirement analysis and structured Use Case Testing scenarios.'
+                ],
+                techLabels: ['.NET Core/C#', 'Java (Spring)', 'Keycloak/Docker', 'Postman/QA'],
+                techData: [40, 25, 20, 15]
+            },
+            {
+                id: 'thesis',
+                type: 'Academic/Project',
+                title: 'Data Archiving & Analysis',
+                subtitle: "Master's Thesis Project",
+                date: 'Jan 2025 - Oct 2025',
+                icon: '&#x1F4D6;',
+                bullets: [
+                    'Architected an enterprise data archiving model to migrate legacy ERP data from Microsoft Business Central into Azure Data Lake Storage.',
+                    'Developed scalable ETL pipelines using Azure Synapse Analytics for high-volume historical data processing, cleaning, and optimization.',
+                    'Designed interactive Power BI dashboards providing key stakeholders with deep analytical insights from decades of archived business data.'
+                ],
+                techLabels: ['Azure Synapse/ETL', 'Azure Data Lake', 'MS Business Central', 'Power BI'],
+                techData: [40, 30, 15, 15]
+            },
+            {
+                id: 'ihat',
+                type: 'Project',
+                title: 'iHat Smart Helmets',
+                subtitle: 'IoT Safety Platform',
+                date: 'Oct 2022 - Jan 2023',
+                icon: '&#x1F3D7;&#xFE0F;',
+                bullets: [
+                    'Built a real-time IoT safety monitoring and alert system designed to protect frontline workers on hazardous construction sites.',
+                    'Implemented ultra-low latency data streaming using the MQTT protocol and .NET/Vue.js to handle instantaneous hazard telemetry.'
+                ],
+                techLabels: ['.NET', 'Vue.js', 'MQTT Protocol', 'IoT Architecture'],
+                techData: [40, 30, 20, 10]
+            },
+            {
+                id: 'rasbet',
+                type: 'Project',
+                title: 'RASBET',
+                subtitle: 'Scalable Betting Platform',
+                date: 'Oct 2022 - Jan 2023',
+                icon: '&#x26BD;',
+                bullets: [
+                    'Developed a full-stack sports betting platform using Java (Spring Boot) for the backend and React for the frontend.',
+                    'Designed a highly optimized relational database schema (MySQL), integrating transactional concurrency controls to secure financial operations.'
+                ],
+                techLabels: ['Java (Spring Boot)', 'React', 'MySQL', 'System Design'],
+                techData: [40, 30, 20, 10]
+            }
+        ];
+
+        let radarChartInstance = null;
+        let doughNutChartInstance = null;
+        const chartColors = ['#0f766e', '#0369a1', '#b45309', '#475569', '#6d28d9'];
+
+        function initRadarChart() {
+            const ctx = document.getElementById('skillsRadarChart').getContext('2d');
+            if (radarChartInstance) radarChartInstance.destroy();
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Backend (.NET/Java)', 'Databases (SQL/NoSQL)', 'Message/Event (Kafka/MQTT)', 'Frontend (React/Vue)', 'Security (Keycloak)'],
+                    datasets: [{
+                        label: 'Proficiency Focus',
+                        data: [90, 80, 70, 60, 75],
+                        backgroundColor: 'rgba(15, 118, 110, 0.2)',
+                        borderColor: 'rgba(15, 118, 110, 1)',
+                        pointBackgroundColor: 'rgba(15, 118, 110, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(15, 118, 110, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: {
+                                font: { family: 'system-ui', size: 11 },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' Core Focus Level';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderExperienceList() {
+            const listContainer = document.getElementById('experience-list');
+            listContainer.innerHTML = '';
+
+            experienceData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card bg-white border border-stone-200 rounded-lg p-4 flex flex-col cursor-pointer';
+                card.onclick = () => selectExperience(item.id, card);
+                
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-teal-600 uppercase bg-teal-50 px-2 py-0.5 rounded">${item.type}</span>
+                        <span class="text-xs text-slate-400">${item.date.split('-')[0].trim()}</span>
+                    </div>
+                    <div class="flex items-center mt-1">
+                        <span class="text-xl mr-3">${item.icon}</span>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${item.title}</h4>
+                            <p class="text-xs text-slate-500">${item.subtitle}</p>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function selectExperience(id, cardElement) {
+            document.querySelectorAll('.item-card').forEach(el => {
+                el.classList.remove('border-teal-500', 'bg-teal-50/30', 'selected');
+            });
+            cardElement.classList.add('border-teal-500', 'bg-teal-50/30', 'selected');
+
+            const data = experienceData.find(e => e.id === id);
+            if (!data) return;
+
+            document.getElementById('experience-detail-empty').classList.add('hidden');
+            const detailContent = document.getElementById('experience-detail-content');
+            detailContent.classList.remove('hidden');
+            detailContent.classList.add('flex');
+
+            document.getElementById('detail-title').innerText = data.title;
+            document.getElementById('detail-subtitle').innerText = data.subtitle;
+            document.getElementById('detail-date').innerText = data.date;
+
+            const bulletsContainer = document.getElementById('detail-bullets');
+            bulletsContainer.innerHTML = '';
+            data.bullets.forEach(bullet => {
+                const li = document.createElement('li');
+                li.innerText = bullet;
+                bulletsContainer.appendChild(li);
+            });
+
+            updateDoughnutChart(data.techLabels, data.techData, data.title);
+        }
+
+        function updateDoughnutChart(labels, dataArray, title) {
+            const ctx = document.getElementById('techStackChart').getContext('2d');
+            if (doughNutChartInstance) doughNutChartInstance.destroy();
+
+            doughNutChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataArray,
+                        backgroundColor: chartColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { size: 11, family: 'system-ui' },
+                                boxWidth: 12,
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '% Usage/Focus';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function navigate(viewId) {
+            ['overview', 'experience', 'details'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                document.getElementById(`view-${id}`).classList.remove('block');
+                document.getElementById(`nav-${id}`).classList.remove('active');
+            });
+
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.getElementById(`view-${viewId}`).classList.add('block');
+            document.getElementById(`nav-${viewId}`).classList.add('active');
+
+            if (viewId === 'overview' && !radarChartInstance) {
+                initRadarChart();
+            } else if (viewId === 'overview' && radarChartInstance) {
+                radarChartInstance.resize();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initRadarChart();
+            renderExperienceList();
+        });
+
+    </script>
+</body>
+</html>
